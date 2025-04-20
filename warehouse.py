@@ -1,55 +1,67 @@
-class Warehouse:
-    def __init__(self, warehouse_id, location, capacity):
-        self.warehouse_id = warehouse_id
+from abc import ABC, abstractmethod
+
+class StorageUnit(ABC):
+    def __init__(self, unit_id, location, capacity):
+        self.__unit_id = unit_id  # Encapsulated
         self.location = location
         self.capacity = capacity
-        self.inventory = {}  # Stores products as {product_id: product_quantity}
+        self.inventory = {}
 
-    def get_total_quantity(self):
-        # Calculate the total quantity of products in the warehouse
-        return sum(self.inventory.values())
+    def get_unit_id(self):
+        return self.__unit_id
 
-    def store_product(self, product_id, product_quantity):
-        # Add products to the warehouse inventory, considering capacity.
-        if product_quantity <= 0:
-            print("Quantity must be positive!")
-            return
-
-        if product_id in self.inventory:
-            # Update quantity if product already exists
-            if self.get_total_quantity() + product_quantity <= self.capacity:
-                self.inventory[product_id] += product_quantity
-                print(f"{product_quantity} units of product {product_id} added to inventory.")
-            else:
-                print("Not enough space in the warehouse!")
-        else:
-            # Add new product if not already in inventory
-            if self.get_total_quantity() + product_quantity <= self.capacity:
-                self.inventory[product_id] = product_quantity
-                print(f"{product_quantity} units of product {product_id} added to inventory.")
-            else:
-                print("Not enough space in the warehouse!")
-
-    def retrieve_product(self, product_id, product_quantity):
-        # Retrieve products from inventory.
-        if product_id in self.inventory:
-            if product_quantity <= self.inventory[product_id]:
-                self.inventory[product_id] -= product_quantity
-                print(f"{product_quantity} units of product {product_id} retrieved from inventory.")
-                # Remove product if quantity becomes zero
-                if self.inventory[product_id] == 0:
-                    del self.inventory[product_id]
-                    print(f"Product {product_id} is now out of stock in the warehouse.")
-            else:
-                print("Not enough stock available!")
-        else:
-            print("Product not found in inventory!")
-
+    @abstractmethod
     def check_inventory(self):
-        # Display the current inventory.
+        pass
+
+    def store_product(self, product_id, quantity=1):  # Overload via default param
+        if quantity <= 0:
+            raise ValueError("Quantity must be positive.")
+        total_quantity = sum(self.inventory.values())
+        if total_quantity + quantity > self.capacity:
+            raise Exception("Not enough space in the storage unit.")
+        self.inventory[product_id] = self.inventory.get(product_id, 0) + quantity
+
+    def retrieve_product(self, product_id, quantity=1):
+        if product_id not in self.inventory:
+            raise Exception("Product not found.")
+        if quantity > self.inventory[product_id]:
+            raise Exception("Not enough stock.")
+        self.inventory[product_id] -= quantity
+        if self.inventory[product_id] == 0:
+            del self.inventory[product_id]
+
+
+class Warehouse(StorageUnit):
+    def __init__(self, warehouse_id, location, capacity, manager_name=None):
+        super().__init__(warehouse_id, location, capacity)
+        self._manager_name = manager_name
+
+    def store_product(self, product_id, quantity=1):  # Override
+        try:
+            super().store_product(product_id, quantity)
+            print(f"Stored {quantity} units of product {product_id} in the warehouse.")
+        except Exception as e:
+            print(f"Error while storing product: {e}")
+
+    def retrieve_product(self, product_id, quantity=1):  # Override
+        try:
+            super().retrieve_product(product_id, quantity)
+            print(f"Retrieved {quantity} units of product {product_id} from the warehouse.")
+        except Exception as e:
+            print(f"Error while retrieving product: {e}")
+
+    def check_inventory(self):  # Implement abstract method
         if not self.inventory:
-            print("The warehouse is empty.")
+            print("Warehouse inventory is empty.")
         else:
-            print(f"Inventory in Warehouse {self.warehouse_id}:")
-            for product_id, product_quantity in self.inventory.items():
-                print(f"- Product ID {product_id}: {product_quantity} units")
+            print("Current warehouse inventory:")
+            for product_id, quantity in self.inventory.items():
+                print(f" - Product {product_id}: {quantity} units")
+
+    def get_warehouse_info(self):
+        print(f"Warehouse ID: {self.get_unit_id()}")
+        print(f"Location: {self.location}")
+        print(f"Capacity: {self.capacity}")
+        print(f"Manager: {self._manager_name}")
+        self.check_inventory()
