@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 
 class StorageUnit(ABC):
     def __init__(self, unit_id, location, capacity):
-        self.__unit_id = unit_id  # Encapsulated
+        self.__unit_id = unit_id  
         self.location = location
         self.capacity = capacity
         self.inventory = {}
@@ -14,7 +14,7 @@ class StorageUnit(ABC):
     def check_inventory(self):
         pass
 
-    def store_product(self, product_id, quantity=1):  # Overload via default param
+    def store_product(self, product_id, quantity=1):  # Overide
         if quantity <= 0:
             raise ValueError("Quantity must be positive.")
         total_quantity = sum(self.inventory.values())
@@ -51,13 +51,13 @@ class Warehouse(StorageUnit):
         except Exception as e:
             print(f"Error while retrieving product: {e}")
 
-    def check_inventory(self):  # Implement abstract method
+    def check_inventory(self):  # abstract method
         if not self.inventory:
             print("Warehouse inventory is empty.")
         else:
             print("Current warehouse inventory:")
             for product_id, quantity in self.inventory.items():
-                print(f" - Product {product_id}: {quantity} units")
+                print(f"Product {product_id}: {quantity} units")
 
     def get_warehouse_info(self):
         print(f"Warehouse ID: {self.get_unit_id()}")
