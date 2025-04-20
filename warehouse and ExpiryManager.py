@@ -65,3 +65,33 @@ class Warehouse(StorageUnit):
         print(f"Capacity: {self.capacity}")
         print(f"Manager: {self._manager_name}")
         self.check_inventory()
+
+
+class ExpiryManager:
+    def __init__(self, warehouse):
+        self.warehouse = warehouse
+
+    def is_inventory_full(self):
+        total_quantity = sum([item['quantity'] for item in self.warehouse.inventory.values()])
+        return total_quantity >= self.warehouse.capacity
+
+    def remove_expired_if_full(self):
+        if not self.is_inventory_full():
+            print("Inventory is not full. No expired items removed.")
+            return
+
+    def remove_expired_if_full(self):
+        if not self.is_inventory_full():
+            print("Inventory is not full. No expired items removed.")
+            return
+
+        removed = False
+        for product_id in list(self.warehouse.inventory.keys()):
+            expiry = self.warehouse.inventory[product_id]['expiry']
+            if expiry < self.today_date:  # Simple string comparison
+                del self.warehouse.inventory[product_id]
+                print(f"Removed expired product: {product_id}")
+                removed = True
+
+        if not removed:
+            print("No expired products found.")
