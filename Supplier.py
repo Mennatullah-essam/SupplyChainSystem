@@ -75,14 +75,3 @@ class SupplierManager:
             if supplier.supplier_id == supplier_id:
                 return supplier
         return None
-
-# Order management class
-class Order:
-    def __init__(self, order_id, supplier, quantity, part_name):
-        self.order_id = order_id
-        self.supplier = supplier
-        self.quantity = quantity
-        self.part_name = part_name
-
-    def get_order_details(self):
-        return f"Order {self.order_id}: {self.quantity} units of {self.part_name} from {self.supplier.name}."
