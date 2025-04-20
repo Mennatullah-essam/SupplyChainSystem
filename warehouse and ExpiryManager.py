@@ -88,7 +88,7 @@ class ExpiryManager:
         removed = False
         for product_id in list(self.warehouse.inventory.keys()):
             expiry = self.warehouse.inventory[product_id]['expiry']
-            if expiry < self.today_date:  # Simple string comparison
+            if expiry < self.today_date: 
                 del self.warehouse.inventory[product_id]
                 print(f"Removed expired product: {product_id}")
                 removed = True
