@@ -86,13 +86,3 @@ class Order:
 
     def get_order_details(self):
         return f"Order {self.order_id}: {self.quantity} units of {self.part_name} from {self.supplier.name}."
-
-# Shipment management class
-class Shipment:
-    def __init__(self, shipment_id, order, delivery_date):
-        self.shipment_id = shipment_id
-        self.order = order
-        self.delivery_date = delivery_date
-
-    def get_shipment_details(self):
-        return f"Shipment {self.shipment_id}: {self.order.get_order_details()} | Delivery on {self.delivery_date}."
