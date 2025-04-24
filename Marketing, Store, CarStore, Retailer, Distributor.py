@@ -101,10 +101,14 @@ class Retailer(Store):
     def __init__(self, retailer_id, name, location):
         super().__init__(retailer_id, name, location)
 
-    def order_product(self, distributor, car):
+    def order_product(self, distributor, car, quantity):
         try:
-            print(f"Retailer {self.get_name()} ordering {car} from Distributor {distributor.get_name()}.")
-            distributor.distribute_product(self, car)
+            print(f"Retailer {self.get_name()} ordering {quantity} of {car} from Distributor {distributor.get_name()}.")
+            order_id = distributor.generate_order_id()
+            order = Order(order_id, car, quantity, 100000)  # Added default price_per_unit
+            order.place_order()
+            distributor.distribute_product(self, car, quantity, order)
+            return order
         except AttributeError as e:
             print(f"[Attribute Error ordering product]: {e}")
         except Exception as e:
@@ -149,6 +153,7 @@ class Distributor:
         self.__name = name
         self.__distribution_network = distribution_network
         self.__inventory = []
+        self.__order_count = 0
 
     def add_to_inventory(self, car):
         try:
@@ -159,14 +164,18 @@ class Distributor:
         except Exception as e:
             print(f"[Unknown error adding to inventory]: {e}")
 
-    def distribute_product(self, retailer, car):
+    def distribute_product(self, retailer, car, quantity, order):
         try:
-            if car in self.__inventory:
-                self.__inventory.remove(car)
-                retailer.receive_product(car)
-                print(f"Distributed {car} to Retailer {retailer.get_name()}.")
+            available_quantity = self.__inventory.count(car)
+            if available_quantity >= quantity:
+                for _ in range(quantity):
+                    self.__inventory.remove(car)
+                    retailer.receive_product(car)
+                order.update_order_status("Shipped")
+                print(f"Distributed {quantity} of {car} to Retailer {retailer.get_name()}.")
             else:
-                raise ValueError(f"{car} is not available in Distributor {self.__name}'s inventory.")
+                print(f"Not enough {car} in Distributor {self.__name}'s inventory.")
+                order.update_order_status("Cancelled")
         except ValueError as e:
             print(f"[Value Error distributing product]: {e}")
         except Exception as e:
@@ -183,7 +192,45 @@ class Distributor:
     def get_name(self):
         return self.__name
 
+    def generate_order_id(self):
+        self.__order_count += 1
+        return self.__order_count
 
+
+# Order Class
+class Order:
+    def __init__(self, order_id, product, quantity, price_per_unit):
+        self.order_id = order_id
+        self.product = product
+        self.quantity = quantity
+        self.price_per_unit = price_per_unit
+        self.status = "Pending"
+        self.date = "Today"
+        self.estimated_delivery_days = self.calculate_delivery_time()
+
+    def place_order(self):
+        print(f"Order {self.order_id} placed for {self.quantity} of {self.product} at {self.price_per_unit} EGP each.")
+
+    def update_order_status(self, new_status):
+        self.status = new_status
+        print(f"Order {self.order_id} status updated to {self.status}.")
+
+    def track_order(self):
+        print(f"Order {self.order_id} - {self.product} | Quantity: {self.quantity} | Status: {self.status} | Expected Delivery: {self.estimated_delivery_days} days.")
+
+    def calculate_total_price(self):
+        return self.quantity * self.price_per_unit
+
+    def calculate_delivery_time(self):
+        if self.product == "Tesla Model S":
+            return 3
+        elif self.product == "BMW i8":
+            return 4
+        else:
+            return 5
+
+
+# Test system
 marketing = Marketing("Social Media", 5000)
 marketing.run_campaign()
 market_trend = marketing.analyze_market()
@@ -193,10 +240,27 @@ retailer = Retailer(201, "City Cars", "Cairo")
 car_store = CarStore(301, "Elite Motors", "Alexandria")
 
 distributor.add_to_inventory("Tesla Model S")
-retailer.order_product(distributor, "Tesla Model S")
+distributor.add_to_inventory("Tesla Model S")
+distributor.add_to_inventory("BMW i8")
+
+order1 = retailer.order_product(distributor, "Tesla Model S", 2)
+order1.track_order()
+print(f"Total price: {order1.calculate_total_price()} EGP")
+
+order2 = retailer.order_product(distributor, "BMW i8", 1)
+order2.track_order()
+print(f"Total price: {order2.calculate_total_price()} EGP")
+
+order3 = retailer.order_product(distributor, "Audi A6", 1)
+order3.track_order()
+print(f"Total price: {order3.calculate_total_price()} EGP")
+
 retailer.check_stock()
+
 retailer.sell_product("Tesla Model S")
 retailer.check_stock()
-retailer.return_car(distributor, "Tesla Model S")
+
+retailer.return_car(distributor, "BMW i8")
+
 car_store.purchase_from_retailer(retailer, "Tesla Model S")
 print(f"{car_store.get_name()} stock: {car_store.check_stock()} cars available.")
