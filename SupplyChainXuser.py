@@ -241,34 +241,7 @@ class Maintenance:
         return f"[{self.service_date}] {self.product.name} - {self.service_type}: ${self.cost:.2f}"
 
 
-class ExpiryManager:
-    def __init__(self, storage_unit: 'StorageUnit'):
-        self.storage_unit = storage_unit
 
-    def check_expired_products(self, check_date: date = None) -> List[Dict]:
-        check_date = check_date or date.today()
-        expired = []
-
-        for product_id, item in self.storage_unit.inventory.items():
-            product = item["product"]
-            if product.is_expired(check_date):
-                expired.append({
-                    "product": product.get_info(),
-                    "quantity": item["quantity"]
-                })
-
-        return expired
-
-    def remove_expired_products(self, check_date: date = None) -> int:
-        expired = self.check_expired_products(check_date)
-        count = sum(item["quantity"] for item in expired)
-
-        for item in expired:
-            product_id = item["product"]["product_id"]
-            if product_id in self.storage_unit.inventory:
-                del self.storage_unit.inventory[product_id]
-
-        return count
 
 
 class StorageUnit(ABC):
